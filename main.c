@@ -34,7 +34,7 @@ void lv_example_get_started_2(void)
     lv_obj_center(label);
 }
 
-int main(void)
+int main(int argc, const char** argv)
 {
     lv_init();
 
@@ -46,16 +46,34 @@ int main(void)
     lv_indev_t *input = lv_evdev_create(LV_INDEV_TYPE_POINTER, "/dev/input/event0");
 
     /*Create a Demo*/
-    lv_demo_widgets();
+    //lv_demo_widgets();
     //lv_demo_widgets_start_slideshow();
 
     //lv_example_get_started_2();
+
+    /*Open a demo or an example*/
+    if (argc == 0)
+    {
+        lv_demo_widgets();
+        //  lv_example_chart_1();
+    }
+    else
+    {
+        if (!lv_demos_create(&argv[1], argc - 1))
+        {
+            lv_demos_show_help();
+            goto demo_end;
+        }
+    }
 
     /*Handle LVGL tasks*/
     while(1) {
         lv_timer_handler();
         usleep(5000);
     }
+
+demo_end:
+    lv_deinit();
 
     return 0;
 }
