@@ -1,9 +1,9 @@
+#define SDL_MAIN_HANDLED        /*To fix SDL's "undefined reference to WinMain" issue*/
+#include <SDL/SDL.h>
+#include <emscripten.h>
 #include "lvgl/lvgl.h"
 #include "lvgl/demos/lv_demos.h"
-#include "lvgl/src/drivers/evdev/lv_evdev.h"
 #include <unistd.h>
-#include <pthread.h>
-#include <time.h>
 
 static void btn_event_cb(lv_event_t * e)
 {
@@ -34,22 +34,40 @@ void lv_example_get_started_2(void)
     lv_obj_center(label);
 }
 
+void do_loop(void *arg)
+{
+    lv_timer_handler();
+}
+
+/**
+ * Initialize the Hardware Abstraction Layer (HAL) for the Littlev graphics library
+ */
+static void hal_init(void)
+{
+    lv_display_t * disp = lv_sdl_window_create(800, 600);
+
+    lv_group_t * g = lv_group_create();
+    lv_group_set_default(g);
+
+    lv_sdl_mouse_create();
+    lv_sdl_mousewheel_create();
+    lv_sdl_keyboard_create();
+ 
+    lv_indev_t * mouse = lv_sdl_mouse_create();
+    lv_indev_set_group(mouse, lv_group_get_default());
+    
+    lv_indev_t * mousewheel = lv_sdl_mousewheel_create();
+    lv_indev_set_group(mousewheel, lv_group_get_default());
+
+    lv_indev_t * keyboard = lv_sdl_keyboard_create();
+    lv_indev_set_group(keyboard, lv_group_get_default());    
+}
+
 int main(int argc, const char** argv)
 {
     lv_init();
 
-
-    /*Linux frame buffer device init*/
-    lv_display_t * disp = lv_linux_fbdev_create();
-    lv_linux_fbdev_set_file(disp, "/dev/fb0");
-
-    lv_indev_t *input = lv_evdev_create(LV_INDEV_TYPE_POINTER, "/dev/input/event0");
-
-    /*Create a Demo*/
-    //lv_demo_widgets();
-    //lv_demo_widgets_start_slideshow();
-
-    //lv_example_get_started_2();
+    hal_init();
 
     /*Open a demo or an example*/
     if (argc == 0)
@@ -66,11 +84,8 @@ int main(int argc, const char** argv)
         }
     }
 
-    /*Handle LVGL tasks*/
-    while(1) {
-        lv_timer_handler();
-        usleep(5000);
-    }
+
+    emscripten_set_main_loop_arg(do_loop, NULL, -1, true);
 
 demo_end:
     lv_deinit();
