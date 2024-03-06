@@ -46,10 +46,10 @@ int main(void)
     lv_indev_t *input = lv_evdev_create(LV_INDEV_TYPE_POINTER, "/dev/input/event0");
 
     /*Create a Demo*/
-    //lv_demo_widgets();
+    lv_demo_widgets();
     //lv_demo_widgets_start_slideshow();
 
-    lv_example_get_started_2();
+    //lv_example_get_started_2();
 
     /*Handle LVGL tasks*/
     while(1) {
